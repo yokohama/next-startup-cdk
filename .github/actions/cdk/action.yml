@@ -1,0 +1,38 @@
+inputs:
+  env:
+    description: ''
+    required: true
+  aws_access_key_id:
+    description: ''
+    required: true
+  aws_secret_access_key:
+    description: ''
+    required: true
+  aws_region:
+    description: ''
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ inputs.aws_access_key_id }}
+        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - uses: actions/checkout@v3
+    - name: use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      shell: bash
+      run: yarn --frozen-lockfile
+
+    - name: CDK Deploy
+      shell: bash
+      run: TARGET_ENV=${{ inputs.env }} yarn cdk deploy

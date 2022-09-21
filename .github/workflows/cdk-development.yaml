@@ -1,0 +1,27 @@
+name: '[ Development ] CDK Deploy'
+
+on: 
+  push:
+    branches:
+      - development
+    paths:
+      - 'bin/**'
+      - 'lib/**'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+      - 'yarn.lock'
+
+jobs:
+  Deploy-CDK:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+
+      - name: CDK Deploy
+        uses: ./.github/actions/cdk
+        with:
+          env: dev
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}

@@ -1,0 +1,102 @@
+{
+    "tasks": [
+        {
+            "attachments": [
+                {
+                    "id": "da1d678e-6288-4e5e-b320-a1d5f6359976",
+                    "type": "ElasticNetworkInterface",
+                    "status": "DELETED",
+                    "details": [
+                        {
+                            "name": "subnetId",
+                            "value": "subnet-06b7e3ced3bc92661"
+                        },
+                        {
+                            "name": "networkInterfaceId",
+                            "value": "eni-0dd9a187be7e2c5d4"
+                        },
+                        {
+                            "name": "macAddress",
+                            "value": "06:02:ad:08:ad:3b"
+                        },
+                        {
+                            "name": "privateDnsName",
+                            "value": "ip-10-0-0-85.ap-northeast-1.compute.internal"
+                        },
+                        {
+                            "name": "privateIPv4Address",
+                            "value": "10.0.0.85"
+                        }
+                    ]
+                }
+            ],
+            "attributes": [
+                {
+                    "name": "ecs.cpu-architecture",
+                    "value": "x86_64"
+                }
+            ],
+            "availabilityZone": "ap-northeast-1a",
+            "clusterArn": "arn:aws:ecs:ap-northeast-1:465254350166:cluster/NextStartupVpcStack-local-EcsCluster97242B84-tbClzLt7dugH",
+            "connectivity": "CONNECTED",
+            "connectivityAt": "2022-09-21T19:29:31.371000+09:00",
+            "containers": [
+                {
+                    "containerArn": "arn:aws:ecs:ap-northeast-1:465254350166:container/NextStartupVpcStack-local-EcsCluster97242B84-tbClzLt7dugH/0392fe3012834cd2804cf57d1e9ea4f9/f8601018-7e71-44f4-8e75-7e9da4771f4f",
+                    "taskArn": "arn:aws:ecs:ap-northeast-1:465254350166:task/NextStartupVpcStack-local-EcsCluster97242B84-tbClzLt7dugH/0392fe3012834cd2804cf57d1e9ea4f9",
+                    "name": "rootContainer",
+                    "image": "465254350166.dkr.ecr.ap-northeast-1.amazonaws.com/nextstartupecrstack-repository22e53bbd-yrdytkbnfcfy:latest",
+                    "imageDigest": "sha256:1d9b75aa513fa3ee896597a4b984b13a6c44958284b598c9c5a62d87cd1a55b1",
+                    "runtimeId": "0392fe3012834cd2804cf57d1e9ea4f9-3970437272",
+                    "lastStatus": "STOPPED",
+                    "exitCode": 0,
+                    "networkBindings": [],
+                    "networkInterfaces": [
+                        {
+                            "attachmentId": "da1d678e-6288-4e5e-b320-a1d5f6359976",
+                            "privateIpv4Address": "10.0.0.85"
+                        }
+                    ],
+                    "healthStatus": "UNKNOWN",
+                    "cpu": "0",
+                    "memory": "256"
+                }
+            ],
+            "cpu": "256",
+            "createdAt": "2022-09-21T19:29:27.676000+09:00",
+            "desiredStatus": "STOPPED",
+            "enableExecuteCommand": false,
+            "executionStoppedAt": "2022-09-21T19:29:59.283000+09:00",
+            "group": "service:NextStartupVpcStack-local-LoadBalancedFargateServiceCB95839D-htCb3sUMMlln",
+            "healthStatus": "UNKNOWN",
+            "lastStatus": "STOPPED",
+            "launchType": "FARGATE",
+            "memory": "512",
+            "overrides": {
+                "containerOverrides": [
+                    {
+                        "name": "rootContainer"
+                    }
+                ],
+                "inferenceAcceleratorOverrides": []
+            },
+            "platformVersion": "1.4.0",
+            "pullStartedAt": "2022-09-21T19:29:39.735000+09:00",
+            "pullStoppedAt": "2022-09-21T19:29:56.021000+09:00",
+            "startedAt": "2022-09-21T19:29:58.325000+09:00",
+            "startedBy": "ecs-svc/3302127606672173872",
+            "stopCode": "EssentialContainerExited",
+            "stoppedAt": "2022-09-21T19:30:22.391000+09:00",
+            "stoppedReason": "Essential container in task exited",
+            "stoppingAt": "2022-09-21T19:30:09.316000+09:00",
+            "tags": [],
+            "taskArn": "arn:aws:ecs:ap-northeast-1:465254350166:task/NextStartupVpcStack-local-EcsCluster97242B84-tbClzLt7dugH/0392fe3012834cd2804cf57d1e9ea4f9",
+            "taskDefinitionArn": "arn:aws:ecs:ap-northeast-1:465254350166:task-definition/NextStartupVpcStacklocalTaskDefinitionC80F74BE:4",
+            "version": 5,
+            "ephemeralStorage": {
+                "sizeInGiB": 20
+            }
+        }
+    ],
+    "failures": []
+}
