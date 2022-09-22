@@ -35,4 +35,4 @@ runs:
 
     - name: CDK Deploy
       shell: bash
-      run: TARGET_ENV=${{ inputs.env }} yarn cdk deploy
+      run: TARGET_ENV=${{ inputs.env }} yarn cdk deploy --require-approval never
