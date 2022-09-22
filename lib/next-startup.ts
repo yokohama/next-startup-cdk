@@ -7,7 +7,7 @@ import {
   aws_ecs_patterns as ecs_patterns,
   aws_apigateway as apigateway 
 } from 'aws-cdk-lib'
-import { StackPropsType } from './types/StackPropsType'
+import { StackPropsType } from './types/TargetEnvType';
 
 export class NextStartupStack extends cdk.Stack {
   //constructor(scope: Construct, id: string, props?: cdk.StackProps) {

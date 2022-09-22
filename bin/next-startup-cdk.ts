@@ -4,7 +4,6 @@ import * as cdk from 'aws-cdk-lib';
 
 import { TargetEnvType, RailsEnvType } from '../lib/types/TargetEnvType';
 
-import { EcrStack } from '../lib/ecr-stack';
 import { VpcStack } from '../lib/vpc-stack';
 
 let targetEnv :TargetEnvType = 'local'
@@ -25,12 +24,8 @@ if (process.env.TARGET_ENV === 'prod') {
 const app = new cdk.App();
 
 // cdk ls
-const repository = new EcrStack(app, 'NextStartupEcrStack').repo
-
-// cdk ls
 new VpcStack(app, `NextStartupVpcStack-${targetEnv}`, {
   targetEnv, 
-  repository,
   railsEnv, 
   dbName, 
   dbUser

@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib'
 import { Construct } from 'constructs'
 
 import { 
+  aws_ecr as ecr,
   aws_ec2 as ec2,
   aws_rds as rds,
   aws_ecs as ecs,
@@ -19,6 +20,11 @@ export class VpcStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props: StackPropsType) {
     super(scope, id, props);
+
+    // ECR
+    const repository = new ecr.Repository(this, "Repository", {
+      imageScanOnPush: true,
+    });
     
     // VPC
     this.vpc = new ec2.Vpc(this, 'Vpc', {
@@ -53,6 +59,15 @@ export class VpcStack extends cdk.Stack {
     })
 
     // RDS
+    const rdsSG = new ec2.SecurityGroup(this, 'rds-sg', {
+      vpc: this.vpc,
+      allowAllOutbound: true
+    });
+    rdsSG.addIngressRule(
+      ec2.Peer.ipv4('0.0.0.0/0'),
+      ec2.Port.tcp(5432)
+    );
+
     const postgresql = new rds.DatabaseInstance(this, 'Instance', {
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_14_2,
@@ -63,6 +78,7 @@ export class VpcStack extends cdk.Stack {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS
         //subnetType: ec2.SubnetType.PRIVATE_ISOLATED
       },
+      securityGroups: [rdsSG],
       credentials: rds.Credentials.fromSecret(secret),
       databaseName: props.dbName
     });
@@ -79,31 +95,27 @@ export class VpcStack extends cdk.Stack {
       'TaskDefinition',
     )
     taskDefinition.addContainer('rootContainer', {
-      image: ecs.ContainerImage.fromEcrRepository(props.repository, 'latest'),
+      image: ecs.ContainerImage.fromEcrRepository(repository, 'latest'),
       memoryLimitMiB: 256,
       logging: ecs.LogDriver.awsLogs({
-        streamPrefix: props.repository.repositoryName,
+        streamPrefix: repository.repositoryName,
       }),
       environment: {
         RAILS_ENV: props.railsEnv,
+        RAILS_LOG_TO_STDOUT: 'true',
         DATABASE_HOST: postgresql.instanceEndpoint.hostname,
         DATABASE_NAME: props.dbName,
-        DATABASE_USER: props.dbUser
+        DATABASE_USER: props.dbUser,
       },
       secrets: {
-        'DB_PASSWORD': ecs.Secret.fromSecretsManager(secretmanager.Secret.fromSecretCompleteArn(
-          this, 
-          'Secrets', 
-          secret.secretFullArn!
-         )),
+        'DATABASE_PASSWORD': ecs.Secret.fromSecretsManager(secret, 'password')
       },
-      entryPoint: ['rake', 'db:migrate'],
-      workingDirectory: '/opt/app'
+      //entryPoint: ['rake', 'db:migrate'],
+      //workingDirectory: '/opt/app'
     })
     .addPortMappings({
       protocol: ecs.Protocol.TCP,
-      containerPort: 3000,
-      hostPort: 3000,
+      containerPort: 3000
     });
     
     const loadBalancedFargateService = 
@@ -124,15 +136,10 @@ export class VpcStack extends cdk.Stack {
           publicLoadBalancer: true,
         }
       )
+
     loadBalancedFargateService.service.connections.allowFrom(
       ec2.Peer.ipv4(this.vpc.vpcCidrBlock),
-      ec2.Port.tcp(80)
+      ec2.Port.tcp(3000)
     )
-    
-    /*
-    const link = new apigateway.VpcLink(this, "link", {
-      targets: [loadBalancedFargateService.loadBalancer],
-    });
-    */
   }
 }
