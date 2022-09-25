@@ -1,6 +1,0 @@
-1. taskdifinition subnet type = PRIVATE.ISOLATEDの場合、以下コンテナ起動時の停止の理由
-ResourceInitializationError: unable to pull secrets or registry auth: execution resource retrieval failed: unable to retrieve secret from asm: service call has been retried 5 time(s): failed to fetch secret arn:aws:secretsmanager:ap-northeast-1:465254350166:secret:postgres-R4AnXA from secrets manager: RequestCanceled: request context canceled caused by: context deadline exceeded
-
-2. taskdifinition subnet type = PRIVATE_WITH_EGRESSに、変更
-ローカルでの、docker run ID rails s と同じエラー
-ercからPULLは出来ている。
