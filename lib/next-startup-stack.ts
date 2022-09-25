@@ -8,10 +8,12 @@ import {
   aws_ecs as ecs,
   aws_ecs_patterns as ecs_patterns,
   aws_secretsmanager as secretmanager,
-  aws_apigateway as apigateway
+  aws_apigateway as apigateway,
+  CfnOutput
 } from 'aws-cdk-lib'
 
 import { StackPropsType } from './types/TargetEnvType';
+import { ContainerDefinition } from 'aws-cdk-lib/aws-ecs';
 
 export class NextStartupStack extends cdk.Stack {
   public readonly vpc: ec2.IVpc
@@ -91,6 +93,7 @@ export class NextStartupStack extends cdk.Stack {
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition')
 
     taskDefinition.addContainer('Container', {
+      containerName: `Container-${props.targetEnv}`,
       image: ecs.ContainerImage.fromEcrRepository(repository, 'latest'),
       memoryLimitMiB: 256,
       logging: ecs.LogDriver.awsLogs({
@@ -137,9 +140,12 @@ export class NextStartupStack extends cdk.Stack {
       ec2.Peer.ipv4(this.vpc.vpcCidrBlock),
       ec2.Port.tcp(3000)
     )
+    
+    // Rilas側でDNSリリバインディン対策を行う場合は、コンテナに環境変数としてNLBのホスト名を渡す。
+    //const container = taskDefinition.findContainer(`Container-${props.targetEnv}`)
+    //container?.addEnvironment('VALID_HOST', loadBalancedFargateService.loadBalancer.loadBalancerDnsName)
 
     // Auto Scaling Settings
-    /*
     const scalableTarget =
       loadBalancedFargateService.service.autoScaleTaskCount({
         minCapacity: 2,
@@ -151,11 +157,9 @@ export class NextStartupStack extends cdk.Stack {
     scalableTarget.scaleOnMemoryUtilization("MemoryScaling", {
       targetUtilizationPercent: 50,
     });
-    */
 
     // VPC Link
-    /*
-    const link = new apigateway.VpcLink(this, "link", {
+    const link = new apigateway.VpcLink(this, "Link", {
       targets: [loadBalancedFargateService.loadBalancer],
     });
 
@@ -177,10 +181,8 @@ export class NextStartupStack extends cdk.Stack {
       },
     });
     
-    const api = new apigateway.RestApi(this, 'next-startup-api', {
-      restApiName: `NextStartUpApi-${props.targetEnv}`
-    })
-    api.root.addMethod('ANY')
-    */
+    const api = new apigateway.RestApi(this, "Api");
+    api.root.addMethod("GET", getIntegration);
+    api.root.addMethod("POST", postIntegration);
   }
 }
