@@ -23,6 +23,7 @@ export class NextStartupStack extends cdk.Stack {
     
     // ECR
     const repository = new ecr.Repository(this, 'Ecr', {
+      repositoryName: `ecr-${props.targetEnv}`,
       imageScanOnPush: true,
     });
     
@@ -69,6 +70,7 @@ export class NextStartupStack extends cdk.Stack {
     );
 
     const postgresql = new rds.DatabaseInstance(this, 'Rds', {
+      instanceIdentifier: `Rds-${props.targetEnv}`,
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_14_2,
       }),
@@ -85,12 +87,15 @@ export class NextStartupStack extends cdk.Stack {
     
     // ECS Cluster
     const ecsCluster = new ecs.Cluster(this, 'EcsCluster', {
+      clusterName: `Cluster-${props.targetEnv}`,
       vpc: this.vpc,
       containerInsights: true,
     });
     
     // ECS Task Definition
-    const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition')
+    const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDefinition', {
+      family: `task-${props.targetEnv}`
+    })
 
     taskDefinition.addContainer('Container', {
       containerName: `Container-${props.targetEnv}`,
@@ -122,6 +127,7 @@ export class NextStartupStack extends cdk.Stack {
         this, 
         'LoadBalancedFargateService', 
         {
+          serviceName: `Service-${props.targetEnv}`,
           assignPublicIp: false,
           cluster: ecsCluster,
           taskSubnets: this.vpc.selectSubnets({
@@ -141,7 +147,7 @@ export class NextStartupStack extends cdk.Stack {
       ec2.Port.tcp(3000)
     )
     
-    // Rilas側でDNSリリバインディン対策を行う場合は、コンテナに環境変数としてNLBのホスト名を渡す。
+    // Rilas側でDNSリバインディング対策を行う場合は、コンテナに環境変数としてNLBのホスト名を渡す。
     //const container = taskDefinition.findContainer(`Container-${props.targetEnv}`)
     //container?.addEnvironment('VALID_HOST', loadBalancedFargateService.loadBalancer.loadBalancerDnsName)
 
@@ -182,7 +188,8 @@ export class NextStartupStack extends cdk.Stack {
     });
     
     const api = new apigateway.RestApi(this, 'Api', {
-      restApiName: `Api-${props.targetEnv}`
+      restApiName: `Api-${props.targetEnv}`,
+      description: props.targetEnv
     });
     api.root.addMethod("GET", getIntegration);
     api.root.addMethod("POST", postIntegration);
