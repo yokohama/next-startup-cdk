@@ -181,7 +181,9 @@ export class NextStartupStack extends cdk.Stack {
       },
     });
     
-    const api = new apigateway.RestApi(this, "Api");
+    const api = new apigateway.RestApi(this, 'Api', {
+      restApiName: `Api-${props.targetEnv}`
+    });
     api.root.addMethod("GET", getIntegration);
     api.root.addMethod("POST", postIntegration);
   }
