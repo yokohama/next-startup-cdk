@@ -9,11 +9,10 @@ import {
   aws_ecs_patterns as ecs_patterns,
   aws_secretsmanager as secretmanager,
   aws_apigateway as apigateway,
-  CfnOutput
+  aws_elasticloadbalancingv2 as elbv2,
 } from 'aws-cdk-lib'
 
 import { StackPropsType } from './types/TargetEnvType';
-import { ContainerDefinition } from 'aws-cdk-lib/aws-ecs';
 
 export class NextStartupStack extends cdk.Stack {
   public readonly vpc: ec2.IVpc
@@ -114,14 +113,20 @@ export class NextStartupStack extends cdk.Stack {
       secrets: {
         'DATABASE_PASSWORD': ecs.Secret.fromSecretsManager(secret, 'password')
       },
-      //entryPoint: ['rake', 'db:migrate'],
-      //workingDirectory: '/opt/app'
     })
     .addPortMappings({
       protocol: ecs.Protocol.TCP,
       containerPort: 3000
     });
     
+    // NLB
+    const nlb = new elbv2.NetworkLoadBalancer(this, 'lb', {
+      vpc: this.vpc,
+      loadBalancerName: `Nlb-${props.targetEnv}`,
+      internetFacing: true
+    });
+    
+    // TODO: セキュリテグルーを作成して追加。port 3000
     const loadBalancedFargateService = 
       new ecs_patterns.NetworkLoadBalancedFargateService(
         this, 
@@ -139,13 +144,13 @@ export class NextStartupStack extends cdk.Stack {
           desiredCount: 2,
           taskDefinition: taskDefinition,
           publicLoadBalancer: true,
+          loadBalancer: nlb
         }
       )
-
-    loadBalancedFargateService.service.connections.allowFrom(
-      ec2.Peer.ipv4(this.vpc.vpcCidrBlock),
-      ec2.Port.tcp(3000)
-    )
+      loadBalancedFargateService.service.connections.allowFrom(
+        ec2.Peer.ipv4(this.vpc.vpcCidrBlock),
+        ec2.Port.tcp(3000)
+      )
     
     // Rilas側でDNSリバインディング対策を行う場合は、コンテナに環境変数としてNLBのホスト名を渡す。
     //const container = taskDefinition.findContainer(`Container-${props.targetEnv}`)
@@ -166,32 +171,14 @@ export class NextStartupStack extends cdk.Stack {
 
     // VPC Link
     const link = new apigateway.VpcLink(this, "Link", {
+      vpcLinkName: `Link-${props.targetEnv}`,
       targets: [loadBalancedFargateService.loadBalancer],
     });
 
-    const getIntegration = new apigateway.Integration({
-      type: apigateway.IntegrationType.HTTP_PROXY,
-      integrationHttpMethod: "GET",
-      options: {
-        connectionType: apigateway.ConnectionType.VPC_LINK,
-        vpcLink: link,
-      },
-    });
-    
-    const postIntegration = new apigateway.Integration({
-      type: apigateway.IntegrationType.HTTP_PROXY,
-      integrationHttpMethod: "POST",
-      options: {
-        connectionType: apigateway.ConnectionType.VPC_LINK,
-        vpcLink: link,
-      },
-    });
-    
     const api = new apigateway.RestApi(this, 'Api', {
       restApiName: `Api-${props.targetEnv}`,
       description: props.targetEnv
     });
-    api.root.addMethod("GET", getIntegration);
-    api.root.addMethod("POST", postIntegration);
+    api.root.addMethod("ANY")
   }
 }
