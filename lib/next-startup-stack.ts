@@ -20,6 +20,8 @@ export class NextStartupStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: StackPropsType) {
     super(scope, id, props);
     
+    const rdsDeleteAutomatedBackups = props.targetEnv == ('local' || 'dev')
+    
     // ECR
     const repository = new ecr.Repository(this, 'Ecr', {
       repositoryName: `ecr-${props.targetEnv}`,
@@ -69,6 +71,7 @@ export class NextStartupStack extends cdk.Stack {
     );
 
     const postgresql = new rds.DatabaseInstance(this, 'Rds', {
+      deleteAutomatedBackups: rdsDeleteAutomatedBackups,
       instanceIdentifier: `Rds-${props.targetEnv}`,
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_14_2,
@@ -120,10 +123,10 @@ export class NextStartupStack extends cdk.Stack {
     });
     
     // NLB
-    const nlb = new elbv2.NetworkLoadBalancer(this, 'lb', {
+    const nlb = new elbv2.NetworkLoadBalancer(this, 'Nlb', {
       vpc: this.vpc,
       loadBalancerName: `Nlb-${props.targetEnv}`,
-      internetFacing: true
+      internetFacing: false
     });
     
     // TODO: セキュリテグルーを作成して追加。port 3000
